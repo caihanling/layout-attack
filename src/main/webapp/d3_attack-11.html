@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/layout5.js"></script>
+    
+    
+
+    <style type="text/css">
+      /*  body {
+            background-color: #E0EEEE;
+        }*/
+        .tooltip{
+            position: absolute;
+            width: 200px;
+            height: auto;
+            font-size: 14px;
+            text-align: center;
+            border-style: solid;
+            border-width: 0px;
+            background-color: #DEDEDE;
+            border-radius: 5px;
+            opacity: 0.05
+        }
+        .video{
+            position: absolute;
+        }
+
+        .tooltipBox .tooltipTitle{
+            border-bottom: 1px solid #7c7c7c;
+            text-align: center;
+        }
+         .desColor {
+            width: 10px;
+            height: 10px;
+            float: left;
+            margin: 1px 18px 1px 8px;
+        }
+        .tooltipBox .desText{
+            display: inline;
+        }
+        .tooltipBox{
+            position: absolute;
+            right: 20px;
+            float: right;
+            margin-right: 4%;
+            border-style: solid;
+            border-width: 2px;
+            border-color: #7c7c7c;
+            border-radius: 10px;
+            opacity: 0;
+        }
+        .type {
+            padding: 10px 20px 10px 10px
+        }
+        .tooltipTitle{
+            padding-top: 5px;
+            padding-bottom: 8px;
+        }
+      #main{
+          margin: 0 auto ;
+        /*  width: 1100px;*/
+          /*   background-color: #0a9dc7;*/
+      }
+    </style>
+</head>
+<body>
+
+<div class="video">
+</div>
+
+<!-- <div class="tooltipBox">
+    <div class="tooltipTitle">攻击类型</div>
+    <div class="type" >
+        <div class="desColor" style="background-color: #ee300d"></div>
+        <div class="desText">attack-type1</div>
+    </div>
+    <div class="type">
+        <div class="desColor" style="background-color: #ffc900"></div>
+        <div class="desText">attack-type2</div>
+    </div>
+</div>
+ -->
+<div id="main"></div>
+
+<script>
+    /**
+     * 版本更改7版本
+     * 1.实际读取接口
+     * */
+
+
+
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
+    //获取布局
+    var rectLayout = getRectLayout();
+    console.log(rectLayout);
+
+    var leftSpacing = width * 0.1;
+    var rightSpacing = width * 0.1;
+    var toppacing = height * 0.05;
+    var bottomSpacing = height * 0.05;
+
+
+    //[父区域颜色，子区域颜色]
+    var colors = ['#B0E2FF', '#EEE685'];
+    var rectColor = ['#FF8C00' , '#87CEEB' , '#7CCD7C' , '#A3A3A3' , '#FA8072' , '#87CEEB' , '#FF8C00' , '#87CEEB' , '#7CCD7C' ];
+
+    var color20 = d3.scale.category20();
+
+    //记录攻击的起始位置和结束位置
+    var attackStart, attackStop , rectAttackStart, rectAttackStop, attackPoint;
+    //攻击详情的迭代变量
+    var i = 0;
+    //区域攻击的迭代变量
+    var m = 0;
+    //攻击详情的迭代变量
+    var k = 0;
+    //默认的滚轮值，图标在此不显示
+    var wheel = false;
+
+    //颜色渐变起始颜色，白色
+    var a = d3.rgb(255, 255, 255);
+
+
+    //变量命名
+    //区域攻击的circle效果
+    var rectAttackPoint;
+    //攻击详情的circle效果
+    var attackPoint;
+
+
+
+        var svg = d3.select("#main")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", 2000)
+                .call(d3.behavior.zoom()
+                        .scaleExtent([1, 1.1])
+                        .on("zoom", zoom))
+                .append("g");
+
+        //定义一个滤镜
+        var defs = svg.append("defs");
+        var filter = defs.append("filter")
+                .attr("id" , "GaussianBlur")
+                .attr("x" , 0)
+                .attr("y" , 0);
+        //feGaussianBlur:高斯模糊滤镜，in：使用滤镜的对象，此处是源图形，stdDeviation：高斯模糊唯一参数，数值越大越模糊
+        var feGaussianBlur = filter.append("feGaussianBlur")
+                .attr("in" , "SourceGrapic")
+                .attr("stdDeviation" , 1);
+        var feOffset = filter.append("feOffset")
+                .attr("dx" , 5)
+                .attr("dy" , 5);
+
+
+
+        //定义tooltip提示交互框
+        var tooltip = d3.select("body")
+                .append("div")
+                .attr("class" , "tooltip")
+                .style("opacity" , 0);
+        
+        
+        //绘制箭头
+        var arrowMarker = defs.append("marker")
+        .attr("id","arrow")
+        .attr("markerUnits","strokeWidth")
+        .attr("markerWidth","6")
+        .attr("markerHeight","6")
+        .attr("viewBox","0 0 6 6")
+        .attr("refX","3")
+        .attr("refY","3 ")
+        .attr("orient","auto");
+
+		var arrow_path = "M1,1 L5,3 L1,5 L3,3 L1,1";
+
+		arrowMarker.append("path")
+        	.attr("d",arrow_path)
+        	.attr("fill","#EE3B3B");
+
+
+
+
+        //线性插值计数
+        var sum = 0;
+
+
+        //过渡mp4的效果
+        var video = d3.select(".video")
+                .append("video")
+                .attr("src" , "img/index2.mp4")
+                .attr("width" , width)
+                .attr("height" , height)
+                .attr("autoplay" , "autoplay")
+                .transition()
+                .delay(4000)
+                .duration(1500)
+                .style("opacity" , 0)
+                .remove();
+
+        var tooltipBox = d3.select(".tooltipBox")
+                .transition()
+                .delay(4000)
+                .duration(500)
+                .style("opacity" , 1);
+
+
+
+
+        //绘制云
+            var cloudImg = svg.selectAll("cloudImg")
+                    .data(colors)
+                    .enter()
+                    .append("image")
+                    .attr("width", 200)
+                    .attr("height", 150)
+                    .attr("x", width*0.05)
+                    .attr("y", "0")
+                    .attr("class", "cloudImg")
+                    .attr("xlink:href", "img/cloud.jpg")
+                    .attr("opacity", 0)
+                    .transition()
+                    .delay(3200)
+                    .duration(500)
+                    .attr("opacity", 1);
+        
+            var logoArea = svg.selectAll("logoArea")
+		   			.data(rectLayout.logoArea)
+		            .enter()
+		            .append("rect")
+		            .attr("class" , "logoArea")
+		            .attr("x", function (d) {
+		                return d.x;
+		            })
+		            .attr("y", function (d) {
+		               return d.y;
+		            })
+		             .attr("rx", 5)
+                    .attr("ry", 5)
+		            .attr("width", function(d) {
+		            	return d.width;
+		            })
+		            .attr("height", function(d) {
+		            	return d.height;
+		            })
+		            .attr("fill" , function(d) {
+		            	return d.backgroundColor;
+		            })
+		            .attr("stroke" , function(d) {
+		            	return d.strokeColor;
+		            })
+		            .attr("stroke-width" , 1)
+		            .attr("opacity", 0)
+                    .transition()
+                    .delay(3200)
+                    .duration(500) 
+                    .attr("opacity", 1);
+            
+            
+            var logoAreaTitle = svg.selectAll("logoAreaTitle")
+		   			.data(rectLayout.logoArea)
+		            .enter()
+		            .append("rect")
+		            .attr("class" , "logoAreaTitle")
+		            .attr("x", function (d) {
+		                return d.x;
+		            })
+		            .attr("y", function (d) {
+		               return d.y;
+		            })
+		            .attr("rx", 5)
+                    .attr("ry", 5)
+		            .attr("width", function(d) {
+		            	return d.width;
+		            })
+		            .attr("height", 30)
+		            .attr("fill" , function(d) {
+		            	return d.titleColor;
+		            })
+		            .attr("stroke-width" , 0)
+		            .attr("opacity", 0)
+                    .transition()
+                    .delay(3200)
+                    .duration(500) 
+                    .attr("opacity", 1);
+            
+            
+          //父区域的文字描述
+            var logoAreaText = svg.selectAll("logoAreaText")
+                    .data(rectLayout.logoArea)
+                    .enter()
+                    .append("text")
+                    .attr("font-size", "15px")
+                    .attr("class" , "logoAreaText")
+                    //text-anchor:有三个值（start,middle,end）
+                    .attr("text-anchor", "start")
+                    .attr("x", function (d) {
+                        return Number(d.x) + 10;
+                    })
+                    .attr("y", function (d) {
+                        return Number(d.y) + 7;
+                    })
+                    .attr("dx", "0px")
+                    .attr("dy", "1em")
+                    .text(function (d) {
+                        return d.rectName;
+                    })
+                    .attr("opacity", 0)
+                    .transition()
+                    .delay(3200)
+                    .duration(500) 
+                    .attr("opacity", 1)
+                    .style("fill", function (d, i) {
+                        return "#fff";
+                    });
+
+		
+
+
+            //区域图标绘制
+            var imgRect = svg.selectAll("imgRect")
+                    .data(rectLayout.logo)
+                    .enter()
+                    .append("image")
+                    .attr("class", "imgRect")
+                    .attr("x", function (d) {
+                        return d.x;
+                    })
+                    .attr("y", function (d) {
+                       return d.y;
+                    })
+                    .attr("width", 140)
+                    .attr("height", 100)
+                    .attr("xlink:href", function (d) {
+                        return d.img;
+                    })
+                    .attr("opacity", 0)
+                    .transition()
+                    .delay(3200)
+                    .duration(500) 
+                    .attr("opacity", 1);
+            
+            
+          
+
+             
+        /*     var rect = svg.selectAll("fatherRect")
+                    .data(rectLayout.father)
+                    .enter()
+                    .append("fatherRect")
+                    .attr("class" , "rect")
+                    .attr("x", function (d) {
+                    	console.log(d);
+                        return d.x;
+                    })
+                    .attr("y", function (d) {
+                        return d.y;
+                    })
+                    //圆角矩形
+                    .attr("rx", 5)
+                    .attr("ry", 5)
+                    .attr("width", function (d) {
+                        return d.width * 0.95;
+                    })
+                    .attr("height", function (d) {
+                        return d.height * 0.95;
+                    })
+                    .attr("opacity", 1)
+                    .style("fill", function(d) {
+                    	return d.backgroundColor;
+                    })
+                    .attr("stroke-width", "1")
+                    .attr("stroke", function (d) {
+                        return d.strokeColor;
+                    }); */
+              
+               //父区域rect绘制
+               var rect = svg.selectAll("fatherRect")
+              		.data(rectLayout.father)
+              		.enter()
+              		.append("rect")
+              		.attr("class" , "fatherRect")
+              		.attr("x" , function(d) {
+              			return d.x;
+              		})
+              		.attr("y" , function(d) {
+              			return d.y;
+              		})
+              		.attr("width" , function(d) {
+              			return d.width * 0.95;
+              		})
+              		.attr("height" , function(d) {
+              			return d.height * 0.95;
+              		})
+              		.attr("fill" , "red")
+              		.attr("rx", 5)
+                    .attr("ry", 5)
+                    .attr("fill" , function(d) {
+                    	return d.backgroundColor;
+                    })
+                    .attr("stroke-width", "1")
+                    .attr("stroke", function (d) {
+                        return d.strokeColor;
+                    })
+                    .attr("opacity", 0); 
+                  
+      
+
+
+            //rect头区域的rect部分
+            var headRect = svg.selectAll("headRect")
+                    .data(rectLayout.father)
+                    .enter()
+                    .append("rect")
+                    .attr("class", "headRect")
+                    .attr("x", function (d) {
+                        return d.x;
+                    })
+                    .attr("y", function (d) {
+                        return d.y;
+                    })
+                    //圆角矩形
+                    .attr("rx", 5)
+                    .attr("ry", 5)
+                    .attr("width", function (d) {
+                        return d.width * 0.95;
+                    })
+                    .attr("height", 30)
+               /*     .attr("stroke", function (d, i) {
+                        return rectColor[i];
+                    })*/
+                    .style("fill", function (d) {
+                        return d.titleColor;
+                    })
+                    .attr("stroke-width", 0.5)
+                    //实现虚线
+                 //   .attr("stroke-dasharray", "5,5")
+                    .attr("opacity", 0);
+
+            //父区域的文字描述
+            var HeadRectText = svg.selectAll("HeadRectText")
+                    .data(rectLayout.father)
+                    .enter()
+                    .append("text")
+                    .attr("font-size", "15px")
+                    .attr("class" , "HeadRectText")
+                    //text-anchor:有三个值（start,middle,end）
+                    .attr("text-anchor", "start")
+                    .attr("x", function (d) {
+                        return Number(d.x) + 10;
+                    })
+                    .attr("y", function (d) {
+                        return Number(d.y) + 7;
+                    })
+                    .attr("dx", "0px")
+                    .attr("dy", "1em")
+                    .text(function (d) {
+                        return d.rectName;
+                    })
+                    .attr("opacity", 0)
+                    .style("fill", function (d, i) {
+                        return "#fff";
+                    });
+
+            //子区域rect
+            var childRects = svg.selectAll("childRect")
+                    .data(rectLayout.child)
+                    .enter()
+                    .append("rect")
+                    .attr("x", function (d) {
+                        return d.x;
+                    })
+                    .attr("y", function (d) {
+                        return d.y;
+                    })
+                    .attr("rx", 5)
+                    .attr("ry", 5)
+                    .attr("width", function (d) {
+                        return d.width * 0.9;
+                    })
+                    .attr("height", function (d) {
+                        return d.height *0.93;
+                    })
+                   // .attr("opacity", 1)
+                    .attr("stroke-width", "1")
+                    .attr("stroke", function (d) {
+                        return d.borderColor;
+                    })
+                    .attr("fill", "#fff")
+                    //添加滤镜，展示边框投影效果
+                  /*  .attr("filter", function (d) {
+                        return "url(#" + filter.attr("id") + ")";
+                    })*/
+                    .attr("opacity", 0);
+
+
+            //子区域头区域的虚线部分
+            var childHeadLine = svg.selectAll("childHeadLine")
+                    .data(rectLayout.child)
+                    .enter()
+                    .append("line")
+                    .attr("class", "childHeadLine")
+                    .attr("x1", function (d) {
+                        return d.x;
+                    })
+                    .attr("y1", function (d) {
+                        return Number(d.y) + 30;
+                    })
+                    .attr("x2", function (d) {
+                        return Number(d.x) + d.width*0.9;
+                    })
+                    .attr("y2", function (d) {
+                        return Number(d.y) + 30;
+                    })
+                    .attr("stroke", function (d) {
+                        return d.borderColor;
+                    })
+                    .attr("stroke-width", 0.5)
+                    //实现虚线
+                    .attr("stroke-dasharray", "5,5")
+                    .attr("opacity", 0);
+
+
+            //子区域的文字描述
+            var childRectText = svg.selectAll("childRectText")
+                    .data(rectLayout.child)
+                    .enter()
+                    .append("text")
+                    .attr("font-size", "13px")
+                    .attr("text-anchor", "start")
+                    .attr("x", function (d) {
+                        return Number(d.x) + 10;
+                    })
+                    .attr("y", function (d) {
+                        return Number(d.y) + 10;
+                    })
+                    .attr("dx", "0px")
+                    .attr("dy", "1em")
+                    .text(function (d) {
+                        return d.rectName;
+                    })
+                    .style("fill", function (d, i) {
+                        return d.fontColor;
+                    })
+                    .attr("opacity", 0);
+
+
+        //曾子区域rect
+        var grandChildRects = svg.selectAll("grandChildRects")
+                .data(rectLayout.grandChild)
+                .enter()
+                .append("rect")
+                .attr("class" , "grandChildRects")
+                .attr("x", function (d) {
+                    return d.x;
+                })
+                .attr("y", function (d) {
+                    return d.y;
+                })
+                .attr("rx", 3)
+                .attr("ry", 3)
+                .attr("width", function (d) {
+                    return d.width * 0.9;
+                })
+                .attr("height", function (d) {
+                    return d.height *0.93;
+                })
+                .attr("stroke-width", "0")
+                .attr("fill", "#F0EFEE")
+                .attr("opacity", 0);
+
+
+        //曾子区域头区域的虚线部分
+        var grandChildHeadLine = svg.selectAll("grandChildHeadLine")
+                .data(rectLayout.grandChild)
+                .enter()
+                .append("line")
+                .attr("class", "grandChildHeadLine")
+                .attr("x1", function(d) {
+                    return d.x;
+                })
+                .attr("y1", function (d) {
+                    return Number(d.y) + 30;
+                })
+                .attr("x2", function (d) {
+                    return Number(d.x) + d.width * 0.9 ;
+                })
+                .attr("y2", function (d) {
+                    return Number(d.y) + 30;
+                })
+                .attr("stroke", "#D6D5D4")
+                .attr("stroke-width", 0.5)
+                .attr("opacity", 0);
+
+
+        //rect头区域的rect部分
+        var grandHeadRect = svg.selectAll("grandHeadRect")
+                .data(rectLayout.grandChild)
+                .enter()
+                .append("rect")
+                .attr("class", "grandHeadRect")
+                .attr("x", function (d) {
+                    return d.x;
+                })
+                .attr("y", function (d) {
+                    return d.y;
+                })
+                //圆角矩形
+                .attr("rx", 5)
+                .attr("ry", 5)
+                .attr("width", function (d) {
+                    return d.width * 0.9;
+                })
+                .attr("height", 30)
+                .style("fill", "#E8E8E7")
+                .attr("opacity", 0);
+
+        //曾子区域的文字描述
+        var grandChildRectText = svg.selectAll("grandChildRectText")
+                .data(rectLayout.grandChild)
+                .enter()
+                .append("text")
+                .attr("class" , "grandChildRectText")
+                .attr("font-size", "13px")
+                .attr("text-anchor", "start")
+                .attr("x", function (d) {
+                    return Number(d.x) + 10;
+                })
+                .attr("y", function (d) {
+                    return Number(d.y) + 10;
+                })
+                .attr("dx", "0px")
+                .attr("dy", "1em")
+                .text(function (d) {
+                    return d.rectName;
+                })
+                .style("fill", "#333")
+                .attr("opacity", 0);
+
+
+            //机器展示
+            var computer = svg.selectAll("computer")
+                    .data(rectLayout.computer)
+                    .enter()
+                    .append("image")
+                    .attr("width", "22px")
+                    .attr("height", "22px")
+                    .attr("x", function (d) {
+                        return d.x;
+                    })
+                    .attr("y", function (d) {
+                        return d.y;
+                    })
+                    .attr("class", "computer")
+                    .attr("xlink:href", function (d) {
+                        return d.img;
+                    })
+                    .attr("opacity", 0)
+            //TODO：在computer的opacity = 1时再添加tooltip
+
+
+            /*   .on("mouseover" , function(d){
+                        tooltip.html(" ip: " + d.ip + "<br/>" + "拥有权限： 普通权限")
+                                .style("opacity" , 1)
+                                .style("left" , (d3.event.pageX) + 10 + "px")
+                                .style("top" , (d3.event.pageY - 8) + "px");
+                    })
+                    .on("mouseout" , function(d) {
+                        tooltip.style("opacity" , 0);
+                    })*/;
+
+
+
+            
+            if(rectLayout.rectAttack.length > 0){
+            	 //区域攻击数据读取,延迟3s后执行getAttackData
+                var rectAttack = setTimeout(function () {
+
+
+                    setInterval(getAttackData, 1000);
+                }, "3000");
+            }
+
+
+           
+
+
+
+
+
+            //攻击详情读取数据
+            var detailAttack = null ;
+
+            //控制画线不重复多次
+            var lineTemp = 0;
+
+          //  clearInterval(detailAttack),用来结束setTimeout
+
+
+
+        var flagLineStop = true;
+
+
+
+            //刷新攻击数据
+            function getAttackData() {
+            	var attackType = null , attackfromip = null , attacktoip = null , attackTime = null;
+            	
+                //刷新攻击数据
+
+
+                //margin-left
+                var realX = width * 0.1;
+
+                //攻击详情的线坐标
+                if(rectLayout.attack.realAttackLine.length > 0){
+                	detailAttackLine = [rectLayout.attack.realAttackLine[i].x1 , rectLayout.attack.realAttackLine[i].y1 , rectLayout.attack.realAttackLine[i].x2 , rectLayout.attack.realAttackLine[i].y2];
+                	attackType = rectLayout.attack.realAttackLine[i].attackType;
+                	attackfromip = rectLayout.attack.realAttackLine[i].fromip;
+                	attacktoip = rectLayout.attack.realAttackLine[i].toip;
+                	attackTime = rectLayout.attack.realAttackLine[i].attacktime;
+                }
+                
+                //攻击详情的点坐标
+                if (rectLayout.attack.realAttackPoint.length > 0){
+                	detailAttackPoint = [rectLayout.attack.realAttackPoint[i].x , rectLayout.attack.realAttackPoint[i].y];
+                }
+                
+
+
+                //区域攻击坐标
+                if(m==0){
+                    rectAttackStart = [realX,50]
+                }else {
+                    rectAttackStart = [rectLayout.rectAttack[m-1].x , rectLayout.rectAttack[m-1].y];
+                }
+                rectAttackStop =  [rectLayout.rectAttack[m].x , rectLayout.rectAttack[m].y];
+                
+
+
+
+
+
+
+                //区域攻击的circle效果
+                var rectAttackPoint = svg.selectAll("rectAttackPoint")
+                        .data(rectLayout.rectAttack)
+                        .enter()
+                        .append("circle")
+                        .attr("class" , "rectAttackPoint")
+                        .attr("cx", function (d) {
+                            return rectAttackStop[0];
+                        })
+                        .attr("cy", function (d) {
+                            return rectAttackStop[1];
+                        })
+                        .attr("r", 0)
+                        .attr("opacity", 1)
+                        .attr("fill", "#EE3B3B")
+                        .transition()
+                        .duration(2000)
+                        .attr("r", "40px")
+                        .attr("opacity", 0)
+                        .remove();
+ 
+ 
+
+                //攻击详情的点的扩散的效果
+                var attackPoint = svg.selectAll("attackPoint")
+                        .data(rectLayout.attack.realAttackPoint)
+                        .enter()
+                        .append("circle")
+                        .attr("class" , "attackPoint")
+                        .attr("cx", function (d) {
+                            return detailAttackPoint[0];
+                        })
+                        .attr("cy", function (d) {
+                            return detailAttackPoint[1];
+                        })
+                        .attr("r", "0px")
+                        .attr("opacity", 1)
+                        .attr("fill", "#EE3B3B");
+                /* .transition()
+                 .duration(2000)
+                 .attr("r", "40px")
+                 .attr("opacity", 0)*/;
+
+
+
+
+
+                    //区域攻击的路线
+                    var rectAttackLine = svg.selectAll("rectAttackLine")
+                            .data(rectLayout.rectAttack)
+                            .enter()
+                            .append("line")
+                            .attr("class", "rectAttackLine")
+                            .attr("x1", function (d) {
+                                return rectAttackStart[0];
+                            })
+                            .attr("y1", function (d) {
+                                return rectAttackStart[1];
+                            })
+                            .attr("x2", function (d) {
+                                return rectAttackStart[0];
+                            })
+                            .attr("y2", function (d) {
+                                return rectAttackStart[1];
+                            })
+                            .attr("stroke", "#EE3B3B")
+                            .attr("stroke-width", "3px")
+                            .transition()
+                            .duration(350)
+                            //渐变速度逐渐加快
+                            .ease("cubic")
+                            .attr("x1", function (d) {
+                                return rectAttackStart[0];
+                            })
+                            .attr("y1", function (d) {
+                                return rectAttackStart[1];
+                            })
+                            .attr("x2", function (d) {
+                                return rectAttackStop[0]
+                            })
+                            .attr("y2", function (d) {
+                                return rectAttackStop[1];
+                            })
+                            .attr("marker-end","url(#arrow)")
+                            .transition()
+                            .duration(200)
+                            .attr("stroke-width", 0)
+                            .remove();
+
+
+
+
+                //减少攻击线路的重复绘制
+
+                
+                //攻击详情的路线
+                var attackLine = svg.selectAll("attackLine")
+                        .data(rectLayout.attack.realAttackLine)
+                        .enter()
+                        .append("line")
+                        .attr("class", "attackLine");
+
+
+                //根据攻击点的坐标，改变电脑图标，显示电脑被攻击
+                var attackComputer = svg.selectAll("attackComputer")
+                        .data(rectLayout.attack.realAttackPoint)
+                        .enter()
+                        .append("image")
+                        .attr("width", "22px")
+                        .attr("height", "22px")
+                        .attr("class", "attackComputer");
+
+
+                if (flagLineStop){
+
+                    attackLine
+                            .attr("x1", function (d) {
+                                return detailAttackLine[0];
+                            })
+                            .attr("y1", function (d) {
+                                return detailAttackLine[1];
+                            })
+                            .attr("x2", function (d) {
+                                return detailAttackLine[0];
+                            })
+                            .attr("y2", function (d) {
+                                return detailAttackLine[1];
+                            })
+                            .attr("stroke", "#EE3B3B")
+                            .attr("stroke-width", "1.5px")
+                            .transition()
+                            .duration(500)
+                            .attr("x1", function (d) {
+                                return detailAttackLine[0];
+                            })
+                            .attr("y1", function (d) {
+                                return detailAttackLine[1];
+                            })
+                            .attr("x2", function (d) {
+                                return detailAttackLine[2]
+                            })
+                            .attr("y2", function (d) {
+                                return detailAttackLine[3];
+                            })
+                            //添加箭头标识
+                            .attr("marker-end","url(#arrow)");
+
+
+                    attackComputer
+                            .attr("x", function (d) {
+                                return detailAttackPoint[0];
+                            })
+                            .attr("y", function (d) {
+                                return detailAttackPoint[1];
+                            })
+                            .attr("xlink:href", "img/computer2.png")
+                            .attr("opacity", 0);
+
+                }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                //根据滚轮控制攻击电脑后的效果
+                //鼠标放大
+                if (wheel) {
+
+                    //放大后不显示区域的攻击circle效果
+                 /*   svg.selectAll(".rectAttackPoint")
+                            .transition()
+                            .duration(0.1)
+                            .attr("opacity" , 0)
+                            .remove();*/
+
+
+                    svg.selectAll(".rectAttackPoint")
+                            .remove();
+
+                    //放大后不显示区域的攻击路线
+                  /*  svg.selectAll(".rectAttackLine")
+                            .transition()
+                            .duration(0.1)
+                            .attr("opacity" , 0);*/
+
+                    svg.selectAll(".rectAttackLine")
+                            .remove();
+
+
+                    //放大后显示攻击的circle效果
+                    svg.selectAll(".attackPoint")
+                            .transition()
+                            .duration(1000)
+                            .attr("r", "40px")
+                            .attr("opacity", 0)
+                            .remove();
+
+
+
+
+                    //放大后显示攻击效果
+                    //TODO:先判断opacity再执行
+
+                    attackComputer.attr("opacity", 1)
+                            .transition()
+                            .duration(400)
+                            .attr("opacity", 0)
+                            .transition()
+                            .duration(400)
+                            .attr("opacity", 1)
+                            .transition()
+                            .duration(400)
+                            .attr("opacity", 0)
+                            .transition()
+                            .duration(400)
+                            .attr("opacity", 1);
+                    /*  .transition()
+                     .duration(400)
+                     .attr("opacity", 0);*/
+
+
+                    //放大后才显示tooltip
+                    attackComputer .on("mouseover" , function(d){
+                                tooltip.html(" ip: " + d.ip + "<br/>")
+                                        .style("opacity" , 1)
+                                        .style("left" , (d3.event.pageX) + 10 + "px")
+                                        .style("top" , (d3.event.pageY - 8) + "px");
+                            })
+                            .on("mouseout" , function(d) {
+                                tooltip.style("opacity" , 0);
+                            });
+
+
+                    //攻击线的tooltip
+                    d3.selectAll(".attackLine")
+                            .on("mouseover" , function(d){
+                                tooltip.html(" 攻击路径:</br>"+ attackfromip + "-->" + attacktoip + " <br/>攻击方式:" + attackType + "<br/>攻击时间：" + attackTime + "<br/>")
+                                        .style("opacity" , 1)
+                                        .style("left" , (d3.event.pageX) + 10 + "px")
+                                        .style("top" , (d3.event.pageY - 8) + "px");
+                            })
+                            .on("mouseout" , function(d) {
+                                tooltip.style("opacity" , 0);
+                            });
+
+                    //显示普通电脑的tooltip
+                    computer .on("mouseover" , function(d){
+                                tooltip.html(" ip: " + d.ip + "<br/>")
+                                        .style("opacity" , 1)
+                                        .style("left" , (d3.event.pageX) + 10 + "px")
+                                        .style("top" , (d3.event.pageY - 8) + "px");
+                            })
+                            .on("mouseout" , function(d) {
+                                tooltip.style("opacity" , 0);
+                            })
+
+
+                    //lineTemp = 0;
+
+
+
+
+                    //鼠标缩小，控制攻击效果
+                }else{
+
+                    //每次从头读取数据，从起点绘制数据
+                    i = -1;
+
+
+                    tooltip.attr("opacity" , 0);
+
+
+                    //在无放大情况下不显示被攻击的电脑
+                    svg.selectAll(".attackComputer")
+                            .transition()
+                            .duration(0.1)
+                            .attr("opacity" , 0)
+                            .remove();
+
+
+                    svg.selectAll(".attackComputer")
+                            .remove();
+
+                    //在无放大的情况下不显示详细攻击路线
+             /*       svg.selectAll(".attackLine")
+                            // .transition()
+                            // .duration(0.1)
+                            //.attr("stroke" , "white")
+                            // .attr("stroke-width" , "0px");
+                           // .attr("opacity" , 0);
+                            .attr("stroke-width" , 0)
+                            .remove();*/
+
+
+                    svg.selectAll(".attackLine")
+                            .remove();
+                    //在无放大的情况下不显示攻击的circle效果
+                 /*   svg.selectAll(".attackPoint")
+                            .transition()
+                            .duration(0.1)
+                            .attr("opacity" , 0);*/
+
+
+                    svg.selectAll(".attackPoint")
+                            .remove();
+
+
+                }
+
+
+
+                if (i < rectLayout.attack.realAttackPoint.length - 1) {
+                    i++;
+                    lineTemp++;
+                } else {
+                    i = 0;
+                    flagLineStop = false;
+
+                }
+
+
+                if(m < rectLayout.rectAttack.length - 1){
+                    m++;
+                }else{
+                    m = 0;
+                }
+
+
+            }
+
+
+            function zoom() {
+                svg.attr("transform", function () {
+
+
+                            //放大后看到机器
+                            if (d3.event.scale > 1.05) {
+                                childRects.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+
+                                childHeadLine.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+
+                                childRectText.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+                                rect.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+
+                                wheel = true;
+                                computer.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+                                headRect.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+                                HeadRectText.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+                                grandChildHeadLine.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+                                grandHeadRect.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+                                grandChildRectText.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+                                grandChildRects.transition()
+                                        .duration(1500)
+                                        .attr("opacity", 1);
+
+
+
+                                /*     cloudImg.transition()
+                                             .duration(1500)
+                                             .attr("opacity", 1);*/
+
+                                svg.selectAll(".imgRect")
+                                        .transition()
+                                        .duration(1500)
+                                        .attr("opacity", 0);
+                                      
+                                             
+                                svg.selectAll(".logoArea")
+                                		.transition()
+		                                .duration(1500)
+		                                .attr("opacity", 0);
+                                
+                                svg.selectAll(".logoAreaTitle")
+                                		.transition()
+		                                .duration(1500)
+		                                .attr("opacity", 0);
+                                
+                                svg.selectAll(".logoAreaText")
+                                		.transition()
+		                                .duration(1500)
+		                                .attr("opacity", 0);
+
+
+
+
+                            } else {
+                                wheel = false;
+                                rect.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                computer.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                childRects.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                childHeadLine.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                childRectText.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                tooltip.attr("opacity" , 0);
+
+                                headRect.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                HeadRectText.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                grandChildHeadLine.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                grandHeadRect.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                grandChildRectText.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+                                grandChildRects.transition()
+                                        .duration(600)
+                                        .attr("opacity", 0);
+
+
+                                svg.selectAll(".imgRect")
+                                        .transition()
+                                        .duration(500)
+                                        .attr("opacity", 1);
+                                
+                                svg.selectAll(".logoArea")
+		                        		.transition()
+		                                .duration(600)
+		                                .attr("opacity", 1);
+                        
+		                        svg.selectAll(".logoAreaTitle")
+		                        		.transition()
+		                                .duration(600)
+		                                .attr("opacity", 1);
+		                        
+		                        svg.selectAll(".logoAreaText")
+		                        		.transition()
+		                                .duration(600)
+		                                .attr("opacity", 1);
+
+                                flagLineStop = true;
+
+
+
+
+
+                            }
+                            return "translate(" + d3.event.translate + ")" + "scale(" + d3.event.scale + ")";
+                        }
+                );
+
+            }
+
+
+
+
+
+
+
+</script>
+
+</body>
+</html>

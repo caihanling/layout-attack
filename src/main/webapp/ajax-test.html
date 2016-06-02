@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="js/jquery-2.2.4.js"></script>
+</head>
+<body>
+<script>
+    var test =  $.ajax({
+        type : 'get',
+        url : "http://localhost:8088/data-trans/area",
+       // contentType: "application/json; charset=utf-8",
+       // data: '{"machineIP":"192.168.6.120"}',
+        dataType : 'json',
+        success : function(data){
+          // console.log(data);
+        },
+        error: function(XMLHttpRequest, textStatus, errorThrown) {
+            console.log(errorThrown);
+        },
+        async :false,  
+    });
+   
+   console.log((JSON.parse(test.responseText)).area);
+   
+   
+  /*  var test2 =  $.ajax({
+       type : 'get',
+       url : "http://localhost:8088/data-trans/assets",
+      // contentType: "application/json; charset=utf-8",
+      // data: '{"machineIP":"192.168.6.120"}',
+       dataType : 'json',
+       success : function(data){
+          
+       },
+       error: function(XMLHttpRequest, textStatus, errorThrown) {
+           console.log(errorThrown);
+       },
+       async :false,  
+   });
+  
+  console.log(test2.responseJSON); 
+  
+  var test3 =  $.ajax({
+      type : 'get',
+      url : "http://localhost:8088/data-trans/attack",
+     // contentType: "application/json; charset=utf-8",
+      dataType : 'json',
+      success : function(data){
+         
+      },
+      error: function(XMLHttpRequest, textStatus, errorThrown) {
+          console.log(errorThrown);
+      },
+      async :false,  
+  });
+ 
+ console.log(test3.responseJSON);
+ */
+</script>
+</body>
+</html>
