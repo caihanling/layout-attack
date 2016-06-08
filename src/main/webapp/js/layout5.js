@@ -1,15 +1,6 @@
 /**
  * Created by chl on 16-5-25.
  */
-/**
- * 页面定义4个col*/
-
-
-
-//TODO:1.考虑grandChild 2.加入自绘path 3.加入logoFatherRect
-
-//需要将父区域和子区域区分开
-
 
 
 //测试数据，用来测试布局,pid为0表示为父区域,finishRect用于画子区域时进行遍历
@@ -42,7 +33,7 @@ var computerData = [
     {"id":"100" , "areacode":"10" , "ip":"192.168.3.100" , "type":"PC"} , {"id":"101" , "areacode":"10" , "ip":"192.168.3.101", "type":"PC"},
     {"id":"103" , "areacode":"14" , "ip":"192.168.3.103" , "type":"0"} , {"id":"104" , "areacode":"14" , "ip":"192.168.3.104", "type":"0"},
     {"id":"105" , "areacode":"15" , "ip":"192.168.3.105" , "type":"3"} , {"id":"106" , "areacode":"15" , "ip":"192.168.3.106", "type":"3"},{"id":"107" , "areacode":"15" , "ip":"192.168.3.107", "type":"3"},
-    {"id":"108" , "areacode":"16" , "ip":"192.168.3.108" , "type":"2"} , {"id":"109" , "areacode":"16" , "ip":"192.168.3.109", "type":"2"},{"id":"141" , "areacode":"16" , "ip":"192.168.3.141", "type":"2"},
+    {"id":"108" , "areacode":"16" , "ip":"192.168.3.108" , "type":"2"} , {"id":"109" , "areacode":"16attackObj1.x = attackObj1.x + 10;" , "ip":"192.168.3.109", "type":"2"},{"id":"141" , "areacode":"16" , "ip":"192.168.3.141", "type":"2"},
     {"id":"142" , "areacode":"16" , "ip":"192.168.3.142" , "type":"2"} , {"id":"143" , "areacode":"16" , "ip":"192.168.3.143", "type":"2"},{"id":"144" , "areacode":"16" , "ip":"192.168.3.144", "type":"2"},
     {"id":"145" , "areacode":"16" , "ip":"192.168.3.145" , "type":"2"} , {"id":"146" , "areacode":"16" , "ip":"192.168.3.146", "type":"2"},{"id":"147" , "areacode":"16" , "ip":"192.168.3.147", "type":"2"},
     {"id":"148" , "areacode":"16" , "ip":"192.168.3.148" , "type":"2"} , {"id":"149" , "areacode":"16" , "ip":"192.168.3.149", "type":"2"},{"id":"150" , "areacode":"16" , "ip":"192.168.3.150", "type":"2"},
@@ -81,6 +72,10 @@ var attackComputer = [
     {"fromip":"192.168.3.111" , "toip":"192.168.3.124"} , {"fromip":"192.168.3.130" , "toip":"192.168.3.122"}
 ]
 */
+/*TODO：1.修改攻击线路的锯齿效果
+ *      2.修改tooltip，定宽，坐对齐，字体调小
+ *      3.图标改为原始大小*/
+        
 
 //获取所有数据
 var getData1 =  $.ajax({
@@ -99,12 +94,26 @@ var getData1 =  $.ajax({
     });
    
    var getTransData = JSON.parse(getData1.responseText);
-   
   
   var data = JSON.parse(getTransData.area);
   var computerData = JSON.parse(getTransData.assets);
   var attackComputer = JSON.parse(getTransData.attack).trackers;
-
+  
+/*  attackComputer = [
+                    {"fromip":"192.168.6.55" , "toip":"192.168.6.200" , "parentclassifyid":"0"} ,{"fromip":"192.168.6.120" , "toip":"192.168.3.54" , "parentclassifyid":"1"} ,
+                    {"fromip":"192.168.6.120" , "toip":"192.168.0.1" , "parentclassifyid":"2"} ,{"fromip":"192.168.2.120" , "toip":"192.168.3.54" , "parentclassifyid":"3"} ,
+                    {"fromip":"192.168.2.120" , "toip":"192.168.3.55" , "parentclassifyid":"4"} ,{"fromip":"192.168.6.120" , "toip":"192.168.0.12" , "parentclassifyid":"5"} ,
+                    {"fromip":"192.168.4.120" , "toip":"192.168.0.22" , "parentclassifyid":"6"} , {"fromip":"192.168.6.55" , "toip":"192.168.3.55" , "parentclassifyid":"7"} ,
+                    
+                    {"fromip":"192.168.6.151" , "toip":"192.168.6.67" , "parentclassifyid":"8"} ,{"fromip":"192.168.6.153" , "toip":"192.168.3.54" , "parentclassifyid":"9"} ,
+                    {"fromip":"192.168.6.119" , "toip":"192.168.0.13" , "parentclassifyid":"10"} ,{"fromip":"192.168.6.250" , "toip":"192.168.6.133" , "parentclassifyid":"11"} ,
+                    {"fromip":"192.168.6.189" , "toip":"192.168.3.13" , "parentclassifyid":"12"} ,{"fromip":"192.168.6.120" , "toip":"192.168.6.1" , "parentclassifyid":"13"} ,
+                    {"fromip":"192.168.6.163" , "toip":"192.168.3.59" , "parentclassifyid":"14"} , {"fromip":"198.162.4.123" , "toip":"192.168.3.55" , "parentclassifyid":"15"} ,
+                    
+                    {"fromip":"192.168.6.25" , "toip":"192.168.3.60" , "parentclassifyid":"16"} ,{"fromip":"192.168.31.145" , "toip":"192.168.6.19" , "parentclassifyid":"17"} ,
+                    {"fromip":"192.168.4.162" , "toip":"192.168.3.10" , "parentclassifyid":"18"} ,{"fromip":"192.168.6.190" , "toip":"192.168.6.189" , "parentclassifyid":"19"} 
+                ];
+*/
 
 
 //取屏幕宽高,svg不占满屏幕
@@ -115,11 +124,13 @@ var height = window.innerHeight * 0.9 ;
 
 //初始化对象以及高度，留出一定空白
 var obj = new Object();
-obj.col1 = 50;
-obj.col2 = 50;
-obj.col3 = 50;
+obj.col1 = 60;
+obj.col2 = 60;
+obj.col3 = 60;
 var col;
 
+var attackColor = ["#ffa12d" , "#ff4b3f" , "#ff631a" , "#ff485e" , "#ff58b0" , "#e74dff" , "#8f2fff" , "#735cff" , "#4883ff" , "#15adff" ,
+                   "#5ac3ff" , "#11e2e2" , "#41c2af" , "#23e7a7" , "#a3d56e" , "#31f16a" , "#29ad10" , "#e2b533" , "#f4d354" , "ffe812"];
 
 //每一列的宽度
 var colWidth = 360;
@@ -135,7 +146,7 @@ var transLogo = [];
 var transGrandChild = [];
 var transLogoArea = [];
 
-
+//用于接收接口数据
 var rectData = [];
 var childRectData = [];
 var grandChildData = [];
@@ -170,7 +181,7 @@ function getRectLayout(){
     rect.logo = transLogo;
     rect.logoArea = transLogoArea;
     rect.attack = getAttack(rect.computer , attackComputer);
-    rect.rectAttack = getRectAttack(rect.father);
+    rect.rectAttack = getRectAttack(rect.father ,data);
     return rect;
 }
 
@@ -295,12 +306,7 @@ function transOriData(grandChildData , computerData , childRectData , rectData){
             for (var h=0 ; h<grandChildData.length ; h++){
                 childRectData[i].height += grandChildData[h].height + 30;
             }
-
-
         }
-
-
-
 
     }
 
@@ -393,8 +399,6 @@ function transOriData(grandChildData , computerData , childRectData , rectData){
 
 
 }
-
-
 
 
 
@@ -553,9 +557,6 @@ function getComputer(transChildData , grand , computerData) {
 function calculate(obj,rect ) {
     var array = [obj.col1 , obj.col2 , obj.col3 ];
 
-    // console.log(rect.width , colWidth , rect.width/colWidth);
-
-    var flag = 0;
 
     //最小列的序号
     var min = array.indexOf(Math.min.apply(Math, array));
@@ -652,7 +653,7 @@ function calculate(obj,rect ) {
     }
     
     logoRect = new Object();
-    logoRect.x = rect.x + 110;
+    logoRect.x = rect.x + 130;
     logoRect.y = rect.y + 40;
     logoRect.img = rect.img;
     transLogo.push(logoRect);
@@ -694,25 +695,68 @@ function getAttack(com , attackComputer){
     for(var i=0; i<com.length; i++){
         map[com[i].ip] = com[i];
     }
+    
+    var marginleft = window.innerWidth * 0.05 + 100;
+    
+    var marginAttack = 5;
+    
+    //外界电脑的列高，并设定起始高度
+    var outsideCol = 160;
+    //外界电脑间隔
+    var marginComputer = 40;
+    //存放外界电脑
+    var outsideCom = [];
+    //记录外界电脑,用未攻击状态表示
+    var outsideObj;
+    //是否已经绘制电脑标记
+    var comFlag = false;
 
 
 
 
     for(var j=0 ; j<attackComputer.length; j++){
 
-        //push攻击点的坐标
-    	//只取被攻击点的坐标
+    	//攻击点的对象
         attackObj1 = new Object();
-        //push攻击线的坐标
+        //攻击线的对象
         attackObj2 = new Object();
 
 
-        //处理ip未录入的情况
+        //处理toip未录入的情况
     	 if (map[ attackComputer[j].toip ] == null){
-    		 attackObj1.x = 130;
-    		 attackObj1.y = 130;
-    		 attackObj2.x2 = 130;
-    	     attackObj2.y2 = 130;
+    		 //判断该ip是否已经绘制
+    		 for (var t=0 ; t<outsideCom.length ; t++){
+    			 //该点已经绘制，则不再绘制
+    			 if (attackComputer[j].toip == outsideCom[t].ip){
+    				 attackObj1.x = marginleft;
+    	    		 attackObj1.y = outsideCom[t].y;
+    	    		 attackObj2.x2 = marginleft;
+    	    	     attackObj2.y2 = outsideCom[t].y;
+    	    	     comFlag = true;
+    	    	     
+    			 }
+    		 }
+    		 
+    		 //未绘制该点
+    		 if (!comFlag){
+    			 outsideCol = outsideCol + marginComputer;
+        		 attackObj1.x = marginleft;
+        		 attackObj1.y = outsideCol;
+        		 attackObj2.x2 = marginleft;
+        	     attackObj2.y2 = outsideCol;
+        	     //push到outsideCom集合中
+        	     outsideObj = new Object();
+        	     outsideObj.id = attackComputer[j].id;
+        	     outsideObj.ip = attackComputer[j].toip;
+        	     outsideObj.x = marginleft;
+        	     outsideObj.y = outsideCol;
+        	     outsideObj.img = "img/computer1.png";
+        	     outsideCom.push(outsideObj);
+    		 }
+    		 //重置
+    		 comFlag = false;
+    		 
+    	     
     	 }else{
     		//只取被攻击点的坐标
     	        attackObj1.x = map[ attackComputer[j].toip].x;
@@ -722,10 +766,36 @@ function getAttack(com , attackComputer){
     	        attackObj2.y2 = map[ attackComputer[j].toip].y;
     	 }
     	 
+    	
+    	 
+    	//处理fromip未录入的情况
     	 if (map[ attackComputer[j].fromip ] == null){
-    		 //push攻击线的坐标
-    	        attackObj2.x1 = 130;
-    	        attackObj2.y1 = 130;
+    		//判断该ip是否已经绘制
+    		 for (var t=0 ; t<outsideCom.length ; t++){
+    			 //该点已经绘制，则不再绘制
+    			 if (attackComputer[j].fromip == outsideCom[t].ip){
+    	    		 attackObj2.x1 = marginleft;
+    	    	     attackObj2.y1 = outsideCom[t].y;
+    	    	     comFlag = true;
+    			 }
+    		 }
+    		//未绘制该点
+    		 if (!comFlag){
+     		    outsideCol = outsideCol + marginComputer;
+     	        attackObj2.x1 = marginleft;
+     	        attackObj2.y1 = outsideCol;
+     	        
+     	         outsideObj = new Object();
+	      	     outsideObj.id = attackComputer[j].id;
+	      	     outsideObj.ip = attackComputer[j].fromip;
+	      	     outsideObj.x = marginleft;
+	      	     outsideObj.y = outsideCol;
+	      	     outsideObj.img = "img/computer1.png";
+	      	     outsideCom.push(outsideObj);
+    		 }
+    		 //重置
+    		 comFlag = false;
+    		
     	        
     	 }else {
     		 //push攻击线的坐标
@@ -740,14 +810,27 @@ function getAttack(com , attackComputer){
     		 attackObj2.attackType = attackComputer[j].attacktitle;
     	 }
     	 
+    	 //其余变量赋值
+    	 attackObj1.parentclassifyid = attackComputer[j].parentclassifyid;
+    	 attackObj1.attackColor = attackColor[ attackComputer[j].parentclassifyid ];
+    	 attackObj1.x = attackObj1.x + 10;
+    	 attackObj1.y = attackObj1.y + 10;
+    	 
+    	 
     	 attackObj2.fromip = attackComputer[j].fromip;
     	 attackObj2.toip = attackComputer[j].toip;
     	 attackObj2.attacktime = attackComputer[j].attacktime;
+    	 attackObj2.parentclassifyid = attackComputer[j].parentclassifyid;
+    	 attackObj2.attackColor = attackColor[ attackComputer[j].parentclassifyid ];
+    	 attackObj2.x1 = attackObj2.x1 + 10;
+    	 attackObj2.y1 = attackObj2.y1 + 10;
+    	 attackObj2.x2 = attackObj2.x2 + 10;
+    	 attackObj2.y2 = attackObj2.y2 + 10;
+    	
      
         
         realAttackPoint.push(attackObj1);
         realAttackLine.push(attackObj2);
-
         
        
     }
@@ -756,25 +839,102 @@ function getAttack(com , attackComputer){
     attack = new Object();
     attack.realAttackPoint = realAttackPoint;
     attack.realAttackLine = realAttackLine;
+    attack.outsideCom = outsideCom;
 
     return attack;
 
 }
 
 //计算区域攻击路径
-function getRectAttack(rect){
-
-
-    var rectAttack = [];
-    for(var i=0 ; i<rect.length ; i++) {
-
-        var att = new Object();
-        att.x = rect[i].x + rect[i].width/2;
-        att.y = rect[i].y + 80;
-
-        rectAttack.push(att);
-
+function getRectAttack(rect , data){
+	
+	var map1 = {};
+	var attack ; 
+	for(var i=0; i<computerData.length; i++){
+        map1[computerData[i].ip] = computerData[i];
     }
+	var map2 = {};
+	for (var i=0 ; i<data.length ; i++){
+		map2[data[i].id] = data[i];
+	}
+	var map3 = {};
+	for (var i=0 ; i<rect.length ; i++){
+		map3[rect[i].id] = rect[i];
+	}
+	 var rectAttack ;
+	 var rectAttackPoint = [];
+	 var rectAttackLine = [];
+	 
+	 var marginleft = window.innerWidth * 0.05 + 100;
+	 
+	 
+	
+	for (var j=0 ; j<attackComputer.length ; j++){
+		
+		var attPoint = new Object();
+		var attLine = new Object();
+		
+		
+		//未录入的机器fromip
+		if (map1[attackComputer[j].fromip] == null){
+			attLine.x1 = marginleft;
+	        attLine.y1 = 80;
+		}
+		//已录入的机器他toip
+		else{
+			//找到电脑对应的区域id
+			//找到区域的父区域,这里只处理两层
+			var fromid = (map1[attackComputer[j].fromip]).areacode;
+			var fatherFromId = (map2[fromid]).pid;
+			//在区域中直接有电脑的情况
+			if (fatherFromId == 0){
+				fatherFromId = fromid;
+			}
+			attLine.x1 = map3[fatherFromId].x + map3[fatherFromId].width/2;
+		    attLine.y1 = map3[fatherFromId].y + 80;
+		       
+		}
+		
+		
+		//未录入的机器
+		if (map1[attackComputer[j].toip] == null){
+			
+			attPoint.x = marginleft;
+			attPoint.y = 80;
+			attLine.x2 = marginleft;
+	        attLine.y2 = 80;
+		}
+		//已录入的机器他toip
+		else{
+			//找到电脑对应的区域id
+			//找到区域的父区域,这里只处理两层
+			var toid = (map1[attackComputer[j].toip]).areacode;
+			var fatherToId = (map2[toid]).pid;
+			//在区域中直接有电脑的情况
+			if (fatherToId == 0){
+				fatherToId = toid;
+			}
+			
+			attPoint.x = map3[fatherToId].x + map3[fatherToId].width/2;
+			attPoint.y = map3[fatherToId].y + 80;
+			attLine.x2 = attPoint.x;
+		    attLine.y2 = attPoint.y;
+		}
+		
+		
+		//区域攻击的point和line的color赋值
+		attPoint.attackColor = attackColor[ attackComputer[j].parentclassifyid ];
+		attLine.attackColor = attackColor[ attackComputer[j].parentclassifyid ];
+	
+		
+		rectAttackPoint.push(attPoint);
+        rectAttackLine.push(attLine);
+	}
+	
+	rectAttack = new Object();
+	rectAttack.rectAttackPoint = rectAttackPoint;
+	rectAttack.rectAttackLine = rectAttackLine;
+    
     return rectAttack;
 }
 

@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>攻击态势</title>
     <script src="js/jquery.min.js"></script>
     <script src="js/d3.min.js"></script>
     <script src="js/layout5.js"></script>
+    <!--标签图标 -->
+    <link rel="icon" type="image/x-icon" href="img/favicon-zxsoft.ico" />
+    
     
     
 
@@ -15,10 +18,10 @@
         }*/
         .tooltip{
             position: absolute;
-            width: 200px;
+            width: 240px;
             height: auto;
-            font-size: 14px;
-            text-align: center;
+            font-size: 13px;
+            text-align: left;
             border-style: solid;
             border-width: 0px;
             background-color: #DEDEDE;
@@ -107,10 +110,6 @@
     var bottomSpacing = height * 0.05;
 
 
-    //[父区域颜色，子区域颜色]
-    var colors = ['#B0E2FF', '#EEE685'];
-    var rectColor = ['#FF8C00' , '#87CEEB' , '#7CCD7C' , '#A3A3A3' , '#FA8072' , '#87CEEB' , '#FF8C00' , '#87CEEB' , '#7CCD7C' ];
-
     var color20 = d3.scale.category20();
 
     //记录攻击的起始位置和结束位置
@@ -147,6 +146,8 @@
 
         //定义一个滤镜
         var defs = svg.append("defs");
+        
+      /*   
         var filter = defs.append("filter")
                 .attr("id" , "GaussianBlur")
                 .attr("x" , 0)
@@ -158,7 +159,7 @@
         var feOffset = filter.append("feOffset")
                 .attr("dx" , 5)
                 .attr("dy" , 5);
-
+ */
 
 
         //定义tooltip提示交互框
@@ -168,28 +169,24 @@
                 .style("opacity" , 0);
         
         
-        //绘制箭头
+    /*     //绘制箭头
         var arrowMarker = defs.append("marker")
-        .attr("id","arrow")
-        .attr("markerUnits","strokeWidth")
-        .attr("markerWidth","6")
-        .attr("markerHeight","6")
-        .attr("viewBox","0 0 6 6")
-        .attr("refX","3")
-        .attr("refY","3 ")
-        .attr("orient","auto");
+	        .attr("id","arrow")
+	        .attr("markerUnits","strokeWidth")
+	        .attr("markerWidth","12")
+	        .attr("markerHeight","12")
+	        .attr("viewBox","0 0 12 12")
+	        .attr("refX","6")
+	        .attr("refY","6 ")
+	        .attr("orient","auto");
 
-		var arrow_path = "M1,1 L5,3 L1,5 L3,3 L1,1";
+		var arrow_path = "M2,2 L10,6 L2,10 L6,6 L2,2";
 
 		arrowMarker.append("path")
         	.attr("d",arrow_path)
-        	.attr("fill","#EE3B3B");
+        	.attr("fill","#EE3B3B"); */
 
 
-
-
-        //线性插值计数
-        var sum = 0;
 
 
         //过渡mp4的效果
@@ -215,9 +212,10 @@
 
 
         //绘制云
-            var cloudImg = svg.selectAll("cloudImg")
-                    .data(colors)
-                    .enter()
+            var cloudImg = svg
+            		//.selectAll("cloudImg")
+                    //.data(colors)
+                    //.enter()
                     .append("image")
                     .attr("width", 200)
                     .attr("height", 150)
@@ -336,8 +334,8 @@
                     .attr("y", function (d) {
                        return d.y;
                     })
-                    .attr("width", 140)
-                    .attr("height", 100)
+                    .attr("width", 80)
+                    .attr("height", 80)
                     .attr("xlink:href", function (d) {
                         return d.img;
                     })
@@ -349,37 +347,6 @@
             
             
           
-
-             
-        /*     var rect = svg.selectAll("fatherRect")
-                    .data(rectLayout.father)
-                    .enter()
-                    .append("fatherRect")
-                    .attr("class" , "rect")
-                    .attr("x", function (d) {
-                    	console.log(d);
-                        return d.x;
-                    })
-                    .attr("y", function (d) {
-                        return d.y;
-                    })
-                    //圆角矩形
-                    .attr("rx", 5)
-                    .attr("ry", 5)
-                    .attr("width", function (d) {
-                        return d.width * 0.95;
-                    })
-                    .attr("height", function (d) {
-                        return d.height * 0.95;
-                    })
-                    .attr("opacity", 1)
-                    .style("fill", function(d) {
-                    	return d.backgroundColor;
-                    })
-                    .attr("stroke-width", "1")
-                    .attr("stroke", function (d) {
-                        return d.strokeColor;
-                    }); */
               
                //父区域rect绘制
                var rect = svg.selectAll("fatherRect")
@@ -663,7 +630,6 @@
                         return d.img;
                     })
                     .attr("opacity", 0)
-            //TODO：在computer的opacity = 1时再添加tooltip
 
 
             /*   .on("mouseover" , function(d){
@@ -675,11 +641,30 @@
                     .on("mouseout" , function(d) {
                         tooltip.style("opacity" , 0);
                     })*/;
+            
+            //外界机器展示
+            var outsideCom = svg.selectAll("outsideCom")
+            		.data(rectLayout.attack.outsideCom)
+            		.enter()
+            		.append("image")
+            		.attr("class" , "outsideCom")
+            		.attr("width" , "22px")
+            		.attr("height" , "22px")
+            		.attr("x", function (d) {
+                        return d.x;
+                    })
+                    .attr("y", function (d) {
+                        return d.y;
+                    })
+                    .attr("xlink:href", function (d) {
+                        return d.img;
+                    })
+                    .attr("opacity", 0);
 
 
 
             
-            if(rectLayout.rectAttack.length > 0){
+            if(rectLayout.rectAttack.rectAttackPoint.length > 0){
             	 //区域攻击数据读取,延迟3s后执行getAttackData
                 var rectAttack = setTimeout(function () {
 
@@ -711,6 +696,7 @@
 
             //刷新攻击数据
             function getAttackData() {
+            	
             	var attackType = null , attackfromip = null , attacktoip = null , attackTime = null;
             	
                 //刷新攻击数据
@@ -721,121 +707,106 @@
 
                 //攻击详情的线坐标
                 if(rectLayout.attack.realAttackLine.length > 0){
+                	//给tooltip的显示内容赋值
                 	detailAttackLine = [rectLayout.attack.realAttackLine[i].x1 , rectLayout.attack.realAttackLine[i].y1 , rectLayout.attack.realAttackLine[i].x2 , rectLayout.attack.realAttackLine[i].y2];
                 	attackType = rectLayout.attack.realAttackLine[i].attackType;
                 	attackfromip = rectLayout.attack.realAttackLine[i].fromip;
                 	attacktoip = rectLayout.attack.realAttackLine[i].toip;
                 	attackTime = rectLayout.attack.realAttackLine[i].attacktime;
+                	//用于攻击line和point的颜色区分
+                	attackColor = rectLayout.attack.realAttackLine[i].attackColor;
                 }
                 
                 //攻击详情的点坐标
                 if (rectLayout.attack.realAttackPoint.length > 0){
                 	detailAttackPoint = [rectLayout.attack.realAttackPoint[i].x , rectLayout.attack.realAttackPoint[i].y];
+                	
                 }
                 
 
 
                 //区域攻击坐标
-                if(m==0){
-                    rectAttackStart = [realX,50]
-                }else {
-                    rectAttackStart = [rectLayout.rectAttack[m-1].x , rectLayout.rectAttack[m-1].y];
+
+				//在有攻击数据的情况下绘制区域攻击
+                if (rectLayout.rectAttack.rectAttackPoint.length > 0){
+                	rectAttackP = [rectLayout.rectAttack.rectAttackPoint[m].x , rectLayout.rectAttack.rectAttackPoint[m].y];
+                	rectAttColor = rectLayout.attack.realAttackPoint[m].attackColor;
                 }
-                rectAttackStop =  [rectLayout.rectAttack[m].x , rectLayout.rectAttack[m].y];
-                
-
-
+                if (rectLayout.rectAttack.rectAttackLine.length > 0){
+                	rectAttackL = [rectLayout.rectAttack.rectAttackLine[m].x1 , rectLayout.rectAttack.rectAttackLine[m].y1 , rectLayout.rectAttack.rectAttackLine[m].x2 , rectLayout.rectAttack.rectAttackLine[m].y2];
+        
+                }
 
 
 
 
                 //区域攻击的circle效果
-                var rectAttackPoint = svg.selectAll("rectAttackPoint")
-                        .data(rectLayout.rectAttack)
-                        .enter()
+                var rectAttackPoint = svg
+                		//.selectAll("rectAttackPoint")
+                        //.data(rectLayout.rectAttack.rectAttackPoint)
+                        //.enter()
                         .append("circle")
                         .attr("class" , "rectAttackPoint")
-                        .attr("cx", function (d) {
-                            return rectAttackStop[0];
-                        })
-                        .attr("cy", function (d) {
-                            return rectAttackStop[1];
-                        })
+                        .attr("cx", rectAttackP[0])
+                        .attr("cy", rectAttackP[1])
                         .attr("r", 0)
                         .attr("opacity", 1)
-                        .attr("fill", "#EE3B3B")
+                        .attr("fill", rectAttColor)
                         .transition()
                         .duration(2000)
-                        .attr("r", "40px")
+                        .attr("r", "60px")
                         .attr("opacity", 0)
                         .remove();
  
  
 
                 //攻击详情的点的扩散的效果
-                var attackPoint = svg.selectAll("attackPoint")
-                        .data(rectLayout.attack.realAttackPoint)
-                        .enter()
+                var attackPoint = svg
+                		//.selectAll("attackPoint")
+                        //.data(rectLayout.attack.realAttackPoint)
+                        //.enter()
                         .append("circle")
                         .attr("class" , "attackPoint")
-                        .attr("cx", function (d) {
-                            return detailAttackPoint[0];
-                        })
-                        .attr("cy", function (d) {
-                            return detailAttackPoint[1];
-                        })
+                        .attr("cx",  detailAttackPoint[0])
+                        .attr("cy", detailAttackPoint[1])
                         .attr("r", "0px")
                         .attr("opacity", 1)
-                        .attr("fill", "#EE3B3B");
-                /* .transition()
-                 .duration(2000)
-                 .attr("r", "40px")
-                 .attr("opacity", 0)*/;
-
+                        .attr("fill", attackColor);
 
 
 
 
                     //区域攻击的路线
-                    var rectAttackLine = svg.selectAll("rectAttackLine")
-                            .data(rectLayout.rectAttack)
-                            .enter()
+                    var rectAttackLine = svg
+                    		//.selectAll("rectAttackLine")
+                            //.data(rectLayout.rectAttack.rectAttackLine)
+                            //.enter()
                             .append("line")
                             .attr("class", "rectAttackLine")
-                            .attr("x1", function (d) {
-                                return rectAttackStart[0];
-                            })
-                            .attr("y1", function (d) {
-                                return rectAttackStart[1];
-                            })
-                            .attr("x2", function (d) {
-                                return rectAttackStart[0];
-                            })
-                            .attr("y2", function (d) {
-                                return rectAttackStart[1];
-                            })
-                            .attr("stroke", "#EE3B3B")
+                            .attr("x1", rectAttackL[0])
+                            .attr("y1", rectAttackL[1])
+                            .attr("x2", rectAttackL[0])
+                            .attr("y2", rectAttackL[1])
+                            .attr("stroke", rectAttColor)
                             .attr("stroke-width", "3px")
                             .transition()
                             .duration(350)
                             //渐变速度逐渐加快
                             .ease("cubic")
-                            .attr("x1", function (d) {
-                                return rectAttackStart[0];
-                            })
-                            .attr("y1", function (d) {
-                                return rectAttackStart[1];
-                            })
-                            .attr("x2", function (d) {
-                                return rectAttackStop[0]
-                            })
-                            .attr("y2", function (d) {
-                                return rectAttackStop[1];
-                            })
-                            .attr("marker-end","url(#arrow)")
+                            .attr("x1", rectAttackL[0])
+                            .attr("y1", rectAttackL[1])
+                            .attr("x2", rectAttackL[2])
+                            .attr("y2", rectAttackL[3])
+                           // .attr("marker-end","url(#arrow)")
                             .transition()
                             .duration(200)
-                            .attr("stroke-width", 0)
+                            .attr("stroke-width", function(d) {
+                            /* 	if (rectAttackL[0] != rectAttackL[2]){
+                            		//跨区域时添加箭头
+                            		d3.select(this).attr("marker-end","url(#arrow)")
+                            	} */
+                            	return 0;
+                            })
                             .remove();
 
 
@@ -845,17 +816,19 @@
 
                 
                 //攻击详情的路线
-                var attackLine = svg.selectAll("attackLine")
-                        .data(rectLayout.attack.realAttackLine)
-                        .enter()
+                var attackLine = svg
+                		//.selectAll("attackLine")
+                        //.data(rectLayout.attack.realAttackLine)
+                        //.enter()
                         .append("line")
                         .attr("class", "attackLine");
 
 
                 //根据攻击点的坐标，改变电脑图标，显示电脑被攻击
-                var attackComputer = svg.selectAll("attackComputer")
-                        .data(rectLayout.attack.realAttackPoint)
-                        .enter()
+                var attackComputer = svg
+                		//.selectAll("attackComputer")
+                        //.data(rectLayout.attack.outsideCom)
+                        //.enter()
                         .append("image")
                         .attr("width", "22px")
                         .attr("height", "22px")
@@ -865,20 +838,17 @@
                 if (flagLineStop){
 
                     attackLine
-                            .attr("x1", function (d) {
-                                return detailAttackLine[0];
+                            .attr("x1", detailAttackLine[0])
+                            .attr("y1", detailAttackLine[1])
+                            .attr("x2", detailAttackLine[0])
+                            .attr("y2", detailAttackLine[1])
+                            .attr("stroke", function (d) {
+                            	return attackColor;
                             })
-                            .attr("y1", function (d) {
-                                return detailAttackLine[1];
-                            })
-                            .attr("x2", function (d) {
-                                return detailAttackLine[0];
-                            })
-                            .attr("y2", function (d) {
-                                return detailAttackLine[1];
-                            })
-                            .attr("stroke", "#EE3B3B")
-                            .attr("stroke-width", "1.5px")
+                
+                            .attr("stroke-width", 2)
+                            //.attr("shape-rendering","crispEdges")
+                          	//.attr("fill" , "none")
                             .transition()
                             .duration(500)
                             .attr("x1", function (d) {
@@ -888,22 +858,19 @@
                                 return detailAttackLine[1];
                             })
                             .attr("x2", function (d) {
-                                return detailAttackLine[2]
+                                return detailAttackLine[2];
                             })
                             .attr("y2", function (d) {
                                 return detailAttackLine[3];
-                            })
+                            });
                             //添加箭头标识
-                            .attr("marker-end","url(#arrow)");
+                          //  .attr("marker-end","url(#arrow)");
 
 
                     attackComputer
-                            .attr("x", function (d) {
-                                return detailAttackPoint[0];
-                            })
-                            .attr("y", function (d) {
-                                return detailAttackPoint[1];
-                            })
+                    		//根据攻击中心位置移动电脑坐标
+                            .attr("x", (detailAttackPoint[0]-10) )
+                            .attr("y", (detailAttackPoint[1]-10) )
                             .attr("xlink:href", "img/computer2.png")
                             .attr("opacity", 0);
 
@@ -927,22 +894,10 @@
                 if (wheel) {
 
                     //放大后不显示区域的攻击circle效果
-                 /*   svg.selectAll(".rectAttackPoint")
-                            .transition()
-                            .duration(0.1)
-                            .attr("opacity" , 0)
-                            .remove();*/
-
-
                     svg.selectAll(".rectAttackPoint")
                             .remove();
 
                     //放大后不显示区域的攻击路线
-                  /*  svg.selectAll(".rectAttackLine")
-                            .transition()
-                            .duration(0.1)
-                            .attr("opacity" , 0);*/
-
                     svg.selectAll(".rectAttackLine")
                             .remove();
 
@@ -959,7 +914,6 @@
 
 
                     //放大后显示攻击效果
-                    //TODO:先判断opacity再执行
 
                     attackComputer.attr("opacity", 1)
                             .transition()
@@ -980,8 +934,12 @@
 
 
                     //放大后才显示tooltip
-                    attackComputer .on("mouseover" , function(d){
-                                tooltip.html(" ip: " + d.ip + "<br/>")
+                    
+                   // svg.selectAll(".attackComputer")
+                    attackComputer
+                    .on("mousemove" , function(d){
+                    	console.log("enter attck tooltip function");
+                                tooltip.html(" ip : " + attacktoip + "<br/>")
                                         .style("opacity" , 1)
                                         .style("left" , (d3.event.pageX) + 10 + "px")
                                         .style("top" , (d3.event.pageY - 8) + "px");
@@ -993,8 +951,8 @@
 
                     //攻击线的tooltip
                     d3.selectAll(".attackLine")
-                            .on("mouseover" , function(d){
-                                tooltip.html(" 攻击路径:</br>"+ attackfromip + "-->" + attacktoip + " <br/>攻击方式:" + attackType + "<br/>攻击时间：" + attackTime + "<br/>")
+                            .on("mousemove" , function(d){
+                                tooltip.html(" 攻击路径 : "+ attackfromip + "-->" + attacktoip + " <br/>攻击方式 :" + attackType + "<br/>攻击时间：" + attackTime + "<br/>")
                                         .style("opacity" , 1)
                                         .style("left" , (d3.event.pageX) + 10 + "px")
                                         .style("top" , (d3.event.pageY - 8) + "px");
@@ -1004,8 +962,8 @@
                             });
 
                     //显示普通电脑的tooltip
-                    computer .on("mouseover" , function(d){
-                                tooltip.html(" ip: " + d.ip + "<br/>")
+                    computer .on("mousemove" , function(d){
+                                tooltip.html(" ip : " + d.ip + "<br/>")
                                         .style("opacity" , 1)
                                         .style("left" , (d3.event.pageX) + 10 + "px")
                                         .style("top" , (d3.event.pageY - 8) + "px");
@@ -1013,9 +971,6 @@
                             .on("mouseout" , function(d) {
                                 tooltip.style("opacity" , 0);
                             })
-
-
-                    //lineTemp = 0;
 
 
 
@@ -1042,25 +997,11 @@
                             .remove();
 
                     //在无放大的情况下不显示详细攻击路线
-             /*       svg.selectAll(".attackLine")
-                            // .transition()
-                            // .duration(0.1)
-                            //.attr("stroke" , "white")
-                            // .attr("stroke-width" , "0px");
-                           // .attr("opacity" , 0);
-                            .attr("stroke-width" , 0)
-                            .remove();*/
-
-
                     svg.selectAll(".attackLine")
                             .remove();
+                    
+                    
                     //在无放大的情况下不显示攻击的circle效果
-                 /*   svg.selectAll(".attackPoint")
-                            .transition()
-                            .duration(0.1)
-                            .attr("opacity" , 0);*/
-
-
                     svg.selectAll(".attackPoint")
                             .remove();
 
@@ -1069,6 +1010,7 @@
 
 
 
+                //遍历攻击详情效果
                 if (i < rectLayout.attack.realAttackPoint.length - 1) {
                     i++;
                     lineTemp++;
@@ -1079,7 +1021,8 @@
                 }
 
 
-                if(m < rectLayout.rectAttack.length - 1){
+                //遍历区域攻击效果
+                if(m < rectLayout.rectAttack.rectAttackPoint.length - 1){
                     m++;
                 }else{
                     m = 0;
@@ -1115,9 +1058,15 @@
 
 
                                 wheel = true;
+                                //局域网内电脑
                                 computer.transition()
                                         .duration(1500)
                                         .attr("opacity", 1);
+                                
+                                //外界电脑
+                                outsideCom.transition()
+		                                .duration(1500)
+		                                .attr("opacity", 1);
 
                                 headRect.transition()
                                         .duration(1500)
@@ -1175,13 +1124,20 @@
 
                             } else {
                                 wheel = false;
+                                
                                 rect.transition()
                                         .duration(600)
                                         .attr("opacity", 0);
 
+                                //局域网内电脑
                                 computer.transition()
                                         .duration(600)
                                         .attr("opacity", 0);
+                                
+                                //外界电脑
+                                outsideCom.transition()
+		                                .duration(600)
+		                                .attr("opacity", 0);
 
                                 childRects.transition()
                                         .duration(600)
