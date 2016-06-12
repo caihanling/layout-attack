@@ -832,7 +832,11 @@
                         .append("image")
                         .attr("width", "22px")
                         .attr("height", "22px")
-                        .attr("class", "attackComputer");
+                        .attr("class", "attackComputer")
+                        .attr("x", (detailAttackPoint[0]-10) )
+                        .attr("y", (detailAttackPoint[1]-10) )
+                        .attr("xlink:href", "img/computer2.png")
+                        .attr("opacity", 0);
 
 
                 if (flagLineStop){
@@ -866,14 +870,14 @@
                             //添加箭头标识
                           //  .attr("marker-end","url(#arrow)");
 
-
+/* 
                     attackComputer
                     		//根据攻击中心位置移动电脑坐标
                             .attr("x", (detailAttackPoint[0]-10) )
                             .attr("y", (detailAttackPoint[1]-10) )
                             .attr("xlink:href", "img/computer2.png")
                             .attr("opacity", 0);
-
+ */
                 }
 
 
@@ -986,11 +990,11 @@
 
 
                     //在无放大情况下不显示被攻击的电脑
-                    svg.selectAll(".attackComputer")
+                 /*    svg.selectAll(".attackComputer")
                             .transition()
                             .duration(0.1)
                             .attr("opacity" , 0)
-                            .remove();
+                            .remove(); */
 
 
                     svg.selectAll(".attackComputer")

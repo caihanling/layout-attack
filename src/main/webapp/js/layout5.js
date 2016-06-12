@@ -99,7 +99,7 @@ var getData1 =  $.ajax({
   var computerData = JSON.parse(getTransData.assets);
   var attackComputer = JSON.parse(getTransData.attack).trackers;
   
-/*  attackComputer = [
+  attackComputer = [
                     {"fromip":"192.168.6.55" , "toip":"192.168.6.200" , "parentclassifyid":"0"} ,{"fromip":"192.168.6.120" , "toip":"192.168.3.54" , "parentclassifyid":"1"} ,
                     {"fromip":"192.168.6.120" , "toip":"192.168.0.1" , "parentclassifyid":"2"} ,{"fromip":"192.168.2.120" , "toip":"192.168.3.54" , "parentclassifyid":"3"} ,
                     {"fromip":"192.168.2.120" , "toip":"192.168.3.55" , "parentclassifyid":"4"} ,{"fromip":"192.168.6.120" , "toip":"192.168.0.12" , "parentclassifyid":"5"} ,
@@ -113,7 +113,7 @@ var getData1 =  $.ajax({
                     {"fromip":"192.168.6.25" , "toip":"192.168.3.60" , "parentclassifyid":"16"} ,{"fromip":"192.168.31.145" , "toip":"192.168.6.19" , "parentclassifyid":"17"} ,
                     {"fromip":"192.168.4.162" , "toip":"192.168.3.10" , "parentclassifyid":"18"} ,{"fromip":"192.168.6.190" , "toip":"192.168.6.189" , "parentclassifyid":"19"} 
                 ];
-*/
+
 
 
 //取屏幕宽高,svg不占满屏幕
