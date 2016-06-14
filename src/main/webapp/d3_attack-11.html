@@ -9,13 +9,13 @@
     <!--标签图标 -->
     <link rel="icon" type="image/x-icon" href="img/favicon-zxsoft.ico" />
     
+    <link href="js/ymPrompt/skin/qq/ymPrompt.css" rel="stylesheet" />
+    <script src="js/ymPrompt/ymPrompt.js" type="text/javascript"></script>
+    
     
     
 
     <style type="text/css">
-      /*  body {
-            background-color: #E0EEEE;
-        }*/
         .tooltip{
             position: absolute;
             width: 240px;
@@ -132,13 +132,15 @@
     var rectAttackPoint;
     //攻击详情的circle效果
     var attackPoint;
+    
+    var winHeight = rectLayout.winHeight ; 
 
 
 
         var svg = d3.select("#main")
                 .append("svg")
                 .attr("width", width)
-                .attr("height", 2000)
+                .attr("height", winHeight)
                 .call(d3.behavior.zoom()
                         .scaleExtent([1, 1.1])
                         .on("zoom", zoom))
@@ -629,18 +631,9 @@
                     .attr("xlink:href", function (d) {
                         return d.img;
                     })
-                    .attr("opacity", 0)
-
-
-            /*   .on("mouseover" , function(d){
-                        tooltip.html(" ip: " + d.ip + "<br/>" + "拥有权限： 普通权限")
-                                .style("opacity" , 1)
-                                .style("left" , (d3.event.pageX) + 10 + "px")
-                                .style("top" , (d3.event.pageY - 8) + "px");
-                    })
-                    .on("mouseout" , function(d) {
-                        tooltip.style("opacity" , 0);
-                    })*/;
+                    .attr("opacity", 0);
+            
+            
             
             //外界机器展示
             var outsideCom = svg.selectAll("outsideCom")
@@ -660,8 +653,7 @@
                         return d.img;
                     })
                     .attr("opacity", 0);
-
-
+            
 
             
             if(rectLayout.rectAttack.rectAttackPoint.length > 0){
@@ -715,6 +707,8 @@
                 	attackTime = rectLayout.attack.realAttackLine[i].attacktime;
                 	//用于攻击line和point的颜色区分
                 	attackColor = rectLayout.attack.realAttackLine[i].attackColor;
+                	//被攻击后的图标
+                	attImg = rectLayout.attack.realAttackLine[i].attImg;
                 }
                 
                 //攻击详情的点坐标
@@ -835,7 +829,7 @@
                         .attr("class", "attackComputer")
                         .attr("x", (detailAttackPoint[0]-10) )
                         .attr("y", (detailAttackPoint[1]-10) )
-                        .attr("xlink:href", "img/computer2.png")
+                        .attr("xlink:href", attImg)
                         .attr("opacity", 0);
 
 
@@ -866,7 +860,10 @@
                             })
                             .attr("y2", function (d) {
                                 return detailAttackLine[3];
-                            });
+                            })
+                            .transition()
+                            .duration(7000)
+                            .attr("stroke-width", 0.7);
                             //添加箭头标识
                           //  .attr("marker-end","url(#arrow)");
 
@@ -942,7 +939,6 @@
                    // svg.selectAll(".attackComputer")
                     attackComputer
                     .on("mousemove" , function(d){
-                    	console.log("enter attck tooltip function");
                                 tooltip.html(" ip : " + attacktoip + "<br/>")
                                         .style("opacity" , 1)
                                         .style("left" , (d3.event.pageX) + 10 + "px")
@@ -975,6 +971,17 @@
                             .on("mouseout" , function(d) {
                                 tooltip.style("opacity" , 0);
                             })
+                            
+                    outsideCom
+                    	.on("mousemove" , function(d){
+                        tooltip.html(" ip : " + d.ip + "<br/>")
+                        .style("opacity" , 1)
+                        .style("left" , (d3.event.pageX) + 10 + "px")
+                        .style("top" , (d3.event.pageY - 8) + "px");
+			            })
+			            .on("mouseout" , function(d) {
+			                tooltip.style("opacity" , 0);
+			            })
 
 
 
@@ -990,13 +997,6 @@
 
 
                     //在无放大情况下不显示被攻击的电脑
-                 /*    svg.selectAll(".attackComputer")
-                            .transition()
-                            .duration(0.1)
-                            .attr("opacity" , 0)
-                            .remove(); */
-
-
                     svg.selectAll(".attackComputer")
                             .remove();
 
@@ -1008,6 +1008,7 @@
                     //在无放大的情况下不显示攻击的circle效果
                     svg.selectAll(".attackPoint")
                             .remove();
+              
 
 
                 }
@@ -1097,10 +1098,12 @@
                                         .attr("opacity", 1);
 
 
-
-                                /*     cloudImg.transition()
-                                             .duration(1500)
-                                             .attr("opacity", 1);*/
+                                svg.selectAll(".cloudImg")
+                                 .transition()
+                                         .duration(600)
+                                         .attr("opacity", 0);
+                                     
+                                     
 
                                 svg.selectAll(".imgRect")
                                         .transition()
@@ -1180,6 +1183,11 @@
                                 grandChildRects.transition()
                                         .duration(600)
                                         .attr("opacity", 0);
+                                
+                                svg.selectAll(".cloudImg")
+                                .transition()
+                                        .duration(600)
+                                        .attr("opacity", 1);
 
 
                                 svg.selectAll(".imgRect")
@@ -1217,7 +1225,7 @@
 
 
 
-
+            
 
 
 

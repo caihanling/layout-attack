@@ -99,7 +99,7 @@ var getData1 =  $.ajax({
   var computerData = JSON.parse(getTransData.assets);
   var attackComputer = JSON.parse(getTransData.attack).trackers;
   
-  attackComputer = [
+/*  attackComputer = [
                     {"fromip":"192.168.6.55" , "toip":"192.168.6.200" , "parentclassifyid":"0"} ,{"fromip":"192.168.6.120" , "toip":"192.168.3.54" , "parentclassifyid":"1"} ,
                     {"fromip":"192.168.6.120" , "toip":"192.168.0.1" , "parentclassifyid":"2"} ,{"fromip":"192.168.2.120" , "toip":"192.168.3.54" , "parentclassifyid":"3"} ,
                     {"fromip":"192.168.2.120" , "toip":"192.168.3.55" , "parentclassifyid":"4"} ,{"fromip":"192.168.6.120" , "toip":"192.168.0.12" , "parentclassifyid":"5"} ,
@@ -112,7 +112,16 @@ var getData1 =  $.ajax({
                     
                     {"fromip":"192.168.6.25" , "toip":"192.168.3.60" , "parentclassifyid":"16"} ,{"fromip":"192.168.31.145" , "toip":"192.168.6.19" , "parentclassifyid":"17"} ,
                     {"fromip":"192.168.4.162" , "toip":"192.168.3.10" , "parentclassifyid":"18"} ,{"fromip":"192.168.6.190" , "toip":"192.168.6.189" , "parentclassifyid":"19"} 
-                ];
+                ];*/
+  
+  //attackComputer =  {"error":"1"};
+  
+ 
+  
+  if (attackComputer.error == "1"){
+	  attackComputer = [];
+	  setTimeout("delay()" , 5500);
+  }
 
 
 
@@ -170,7 +179,8 @@ function getRectLayout(){
         calculate(obj,transData[i] , childRectData , grandChildData);
 
     }
-
+    
+   
     //将父区域数据，子区域数据，区域logo数据返回回去
     rect.father = transData;
     rect.child = transChildData;
@@ -182,8 +192,14 @@ function getRectLayout(){
     rect.logoArea = transLogoArea;
     rect.attack = getAttack(rect.computer , attackComputer);
     rect.rectAttack = getRectAttack(rect.father ,data);
+    
+    //屏幕适高
+    var winHeight = Math.max(obj.col1 , obj.col2 , obj.col3);
+
+    rect.winHeight = winHeight + 60;
     return rect;
 }
+
 
 
 
@@ -235,12 +251,12 @@ function transOriData(grandChildData , computerData , childRectData , rectData){
         for (var j=0 ; j<computerData.length ; j++) {
 
             //修改区域图标
-            if (computerData[j].type == "PC"){
+           /* if (computerData[j].type == "PC"){
                 computerData[j].type = "0";
             }else if (computerData[j].type == "SERVER"){
                 computerData[j].type = "2";
             }
-
+*/
 
 
             if (grandChildData[k].id == computerData[j].areacode){
@@ -276,11 +292,11 @@ function transOriData(grandChildData , computerData , childRectData , rectData){
 
             //修改区域图标
             //TODO:增加多种图标样式
-            if (computerData[j].type == "PC"){
+         /*   if (computerData[j].type == "PC"){
                 computerData[j].type = "0";
             }else if (computerData[j].type == "SERVER"){
                 computerData[j].type = "2";
-            }
+            }*/
 
 
             if (childRectData[i].id == computerData[j].areacode){
@@ -437,13 +453,13 @@ function getComputer(transChildData , grand , computerData) {
 
             //根据数字对应图片类型
             switch (computerData[i].type){
-                case "0":
+                case "PC":
                     computerData[i].img = "img/computer1.png";
                     break;
                 case "1":
                     computerData[i].img = "img/computer2.png";
                     break;
-                case "2":
+                case "SERVER":
                     computerData[i].img = "img/server.png";
                     break;
                 case "3":
@@ -479,13 +495,13 @@ function getComputer(transChildData , grand , computerData) {
 
             //根据数字对应图片类型
             switch (computerData[i].type){
-                case "0":
+                case "PC":
                     computerData[i].img = "img/computer1.png";
                     break;
                 case "1":
                     computerData[i].img = "img/computer2.png";
                     break;
-                case "2":
+                case "SERVER":
                     computerData[i].img = "img/server.png";
                     break;
                 case "3":
@@ -524,13 +540,13 @@ function getComputer(transChildData , grand , computerData) {
 
             //根据数字对应图片类型
             switch (computerData[i].type){
-                case "0":
+                case "PC":
                     computerData[i].img = "img/computer1.png";
                     break;
                 case "1":
                     computerData[i].img = "img/computer2.png";
                     break;
-                case "2":
+                case "SERVER":
                     computerData[i].img = "img/server.png";
                     break;
                 case "3":
@@ -584,6 +600,7 @@ function calculate(obj,rect ) {
 
 
 
+   
 
     //找到对应的子区域，计算子区域的布局数据
     //对子区域数据进行转化
@@ -701,7 +718,7 @@ function getAttack(com , attackComputer){
     var marginAttack = 5;
     
     //外界电脑的列高，并设定起始高度
-    var outsideCol = 160;
+    var outsideCol = 60;
     //外界电脑间隔
     var marginComputer = 40;
     //存放外界电脑
@@ -827,13 +844,30 @@ function getAttack(com , attackComputer){
     	 attackObj2.x2 = attackObj2.x2 + 10;
     	 attackObj2.y2 = attackObj2.y2 + 10;
     	
+    	 //去除外界的被攻击电脑
+    	 if ( map[attackComputer[j].toip] != null){
+    		 
+    		 var attImg = map[attackComputer[j].toip].type;
+    		 //被攻击的图标类型
+        	 if ("PC" == attImg){
+        		 attackObj2.attImg = "img/computer2.png";
+        	 }else if ("SERVER" == attImg){
+        		 attackObj2.attImg = "img/server2.png";
+        	 }
+    	 }else{
+    		 //外界区域统一为PC图标
+    		 attackObj2.attImg = "img/computer2.png";
+    	 }
+    	 
+    	
+    	
      
         
         realAttackPoint.push(attackObj1);
         realAttackLine.push(attackObj2);
         
        
-    }
+    }	
 
 
     attack = new Object();
@@ -940,7 +974,9 @@ function getRectAttack(rect , data){
 
 
 
-
+function delay(){
+    ymPrompt.alert({ message: "攻击读取数据有误", width: 250, height: 160, title:  "提示", titleBar: true, showShadow: true });
+}
 
 
 
